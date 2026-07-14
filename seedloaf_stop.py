@@ -7,8 +7,21 @@ async def stop_server():
     email = os.getenv("SEEDLOAF_EMAIL")
     password = os.getenv("SEEDLOAF_PASSWORD")
     
+    if not email or not password:
+        print("SEEDLOAF_EMAIL ve SEEDLOAF_PASSWORD gerekli!")
+        return False
+    
     async with async_playwright() as p:
-        browser = await p.chromium.launch(headless=True)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu'
+            ]
+        )
+        
         context = await browser.new_context()
         page = await context.new_page()
         
@@ -24,20 +37,25 @@ async def stop_server():
             await page.press("#password-field", "Enter")
             await page.wait_for_timeout(5000)
             
-            # Stop World butonuna tıkla (kırmızı buton)
+            if "dashboard" not in page.url:
+                print("Giriş başarısız!")
+                await browser.close()
+                return False
+            
             try:
-                await page.click("button.btn-error", timeout=10000)
-                print("Stop World butonuna tıklandı!")
-                await page.wait_for_timeout(3000)
+                await page.click("button.btn-error", timeout=15000)
+                print("✅ Stop World butonuna tıklandı!")
+                await page.wait_for_timeout(5000)
                 await browser.close()
                 return True
-            except:
-                print("Stop butonu bulunamadı - sunucu zaten durmuş olabilir")
+            except Exception as e:
+                print(f"Stop butonu bulunamadı: {e}")
+                print("Sunucu zaten durmuş olabilir")
                 await browser.close()
                 return True
                 
         except Exception as e:
-            print(f"Hata: {e}")
+            print(f"❌ Hata: {e}")
             await browser.close()
             return False
 
