@@ -12,46 +12,57 @@ async def start_server():
         return False
     
     async with async_playwright() as p:
-        # Chromium'u indir ve başlat
-        browser = await p.chromium.launch(headless=True)
+        # RENDER İÇİN: headless-shell kullan (daha hafif)
+        browser = await p.chromium.launch(
+            headless=True,
+            args=[
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-dev-shm-usage',
+                '--disable-gpu'
+            ]
+        )
+        
         context = await browser.new_context()
         page = await context.new_page()
         
         try:
-            # Seedloaf'a git
+            print("Seedloaf'a gidiliyor...")
             await page.goto("https://accounts.seedloaf.com/sign-in")
             await page.wait_for_load_state("networkidle")
             
-            # Giriş yap
+            print("Email giriliyor...")
             await page.fill("#identifier-field", email)
             await page.press("#identifier-field", "Enter")
             await page.wait_for_timeout(3000)
             
+            print("Password giriliyor...")
             await page.fill("#password-field", password)
             await page.press("#password-field", "Enter")
             await page.wait_for_timeout(5000)
             
-            # Dashboard'a yönlendirildi mi kontrol et
             if "dashboard" not in page.url:
-                print("Giriş başarısız!")
+                print(f"Giriş başarısız! URL: {page.url}")
                 await browser.close()
                 return False
             
-            # Start World butonuna tıkla
+            print("Dashboard'a girildi!")
+            
+            # Start World butonunu bekle ve tıkla
             try:
-                await page.click("button.btn-primary", timeout=10000)
-                print("Start World butonuna tıklandı!")
-                await page.wait_for_timeout(3000)
+                await page.click("button.btn-primary", timeout=15000)
+                print("✅ Start World butonuna tıklandı!")
+                await page.wait_for_timeout(5000)
                 await browser.close()
                 return True
-            except:
-                # Buton yoksa, zaten çalışıyor olabilir
-                print("Start butonu bulunamadı - sunucu zaten çalışıyor olabilir")
+            except Exception as e:
+                print(f"Buton bulunamadı: {e}")
+                print("Sunucu zaten çalışıyor olabilir")
                 await browser.close()
                 return True
                 
         except Exception as e:
-            print(f"Hata: {e}")
+            print(f"❌ Hata: {e}")
             await browser.close()
             return False
 
