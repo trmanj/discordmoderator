@@ -1,8 +1,4 @@
-
-# Shell paralıymış. O zaman log'ları daha detaylı yazdıralım.
-# main.py'yi güncelleyelim - her şeyi log'a yazsın
-
-main_py = '''import discord
+import discord
 from discord import app_commands
 import os
 import subprocess
@@ -52,9 +48,9 @@ async def baslat(interaction: discord.Interaction):
     
     if not username or not password:
         await interaction.followup.send(
-            "⚠️ **Seedloaf giriş bilgileri eksik!**\\n"
-            "Render Environment Variables'a ekle:\\n"
-            "- `SEEDLOAF_EMAIL`\\n"
+            "⚠️ **Seedloaf giriş bilgileri eksik!**\n"
+            "Render Environment Variables'a ekle:\n"
+            "- `SEEDLOAF_EMAIL`\n"
             "- `SEEDLOAF_PASSWORD`",
             ephemeral=True
         )
@@ -79,22 +75,21 @@ async def baslat(interaction: discord.Interaction):
         logger.info(f"STDOUT: {stdout[:2000]}")
         logger.info(f"STDERR: {stderr[:2000]}")
         
-        # Her durumda log'ları göster
-        log_summary = f"Return: {returncode}\\nSTDOUT: {stdout[-800:]}\\nSTDERR: {stderr[-800:]}"
+        log_summary = f"Return: {returncode}\nSTDOUT: {stdout[-800:]}\nSTDERR: {stderr[-800:]}"
         
-        if "tıklandı" in stdout or "tıklandı" in stderr:
+        if "tıklandı" in stdout:
             await interaction.followup.send("✅ **Sunucu başlatıldı!** 🎮")
         elif "zaten çalışıyor" in stdout or "zaten çalışıyor" in stderr:
             await interaction.followup.send("✅ **Sunucu zaten çalışıyor!**")
-        elif "Giriş başarısız" in stdout or "Giriş başarısız" in stderr:
+        elif "Giriş başarısız" in stdout:
             await interaction.followup.send("🔴 **Giriş başarısız!** Email/şifre yanlış.")
         elif returncode != 0:
             await interaction.followup.send(
-                f"❌ **Script hata verdi!** (code: {returncode})\\n```\\n{log_summary}\\n```"
+                f"❌ **Script hata verdi!** (code: {returncode})\n```\n{log_summary}\n```"
             )
         else:
             await interaction.followup.send(
-                f"⚠️ **Durum belirsiz.**\\n```\\n{log_summary}\\n```"
+                f"⚠️ **Durum belirsiz.**\n```\n{log_summary}\n```"
             )
             
     except subprocess.TimeoutExpired:
@@ -129,13 +124,13 @@ async def durdur(interaction: discord.Interaction):
         stdout = result.stdout or "(boş)"
         stderr = result.stderr or "(boş)"
         
-        if "tıklandı" in stdout or "tıklandı" in stderr:
+        if "tıklandı" in stdout:
             await interaction.followup.send("✅ **Sunucu durduruldu!**")
         elif "zaten durmuş" in stdout or "zaten durmuş" in stderr:
             await interaction.followup.send("✅ **Sunucu zaten durmuş!**")
         else:
             await interaction.followup.send(
-                f"⚠️ **Durum belirsiz.**\\n```\\n{stdout[-800:]}\\n{stderr[-800:]}\\n```"
+                f"⚠️ **Durum belirsiz.**\n```\n{stdout[-800:]}\n{stderr[-800:]}\n```"
             )
             
     except Exception as e:
@@ -151,7 +146,7 @@ async def durum(interaction: discord.Interaction):
     
     embed.add_field(
         name="🤖 Bot",
-        value=f"🟢 Çevrimiçi\\n👤 `{bot.user}`",
+        value=f"🟢 Çevrimiçi\n👤 `{bot.user}`",
         inline=True
     )
     
@@ -159,7 +154,7 @@ async def durum(interaction: discord.Interaction):
     if username:
         embed.add_field(
             name="🔗 Seedloaf",
-            value=f"🟢 Yapılandırıldı\\n📧 `{username[:3]}...`",
+            value=f"🟢 Yapılandırıldı\n📧 `{username[:3]}...`",
             inline=True
         )
     else:
@@ -171,7 +166,7 @@ async def durum(interaction: discord.Interaction):
     
     embed.add_field(
         name="📋 Komutlar",
-        value="`/baslat` - Sunucuyu başlat\\n`/durdur` - Sunucuyu durdur\\n`/durum` - Durumu göster",
+        value="`/baslat` - Sunucuyu başlat\n`/durdur` - Sunucuyu durdur\n`/durum` - Durumu göster",
         inline=False
     )
     
@@ -196,13 +191,6 @@ async def durdur_error(interaction: discord.Interaction, error):
 TOKEN = os.getenv("DISCORD_TOKEN")
 if not TOKEN:
     logger.error("DISCORD_TOKEN bulunamadı!")
+    sys.exit(1)
 else:
     bot.run(TOKEN)
-'''
-
-with open('/mnt/agents/output/main.py', 'w') as f:
-    f.write(main_py)
-
-print("✅ main.py güncellendi!")
-print("Şimdi GitHub'a push et ve Render'da redeploy yap.")
-print("Yeni log'lar Discord'da gösterilecek.")
