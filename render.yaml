@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: seedloaf-discord-bot
+    runtime: docker
+    plan: free
+    envVars:
+      - key: DISCORD_TOKEN
+        sync: false
+      - key: SEEDLOAF_EMAIL
+        sync: false
+      - key: SEEDLOAF_PASSWORD
+        sync: false
